@@ -32,7 +32,7 @@ STORAGE_ACCESS_KEY_NAME   = "storageAccessKey"
 CONFIG_REFRESH_IN_SECONDS = 86400
 
 # Parallel configurations
-NUMBER_OF_THREADS     = 10
+NUMBER_OF_THREADS     = 1
 CHECK_WAIT_IN_SECONDS = 5
 
 # Naming conventions for generated resources

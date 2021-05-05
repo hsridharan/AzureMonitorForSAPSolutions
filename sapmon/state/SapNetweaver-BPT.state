@@ -1,0 +1,87 @@
+{
+   "global": {
+      "hostConfig": [
+         {
+            "hostname": "azsaptstbpccl2",
+            "instanceNr": 11,
+            "httpPort": 51113,
+            "httpsPort": 51114,
+            "startPriority": "0.5",
+            "features": "ENQREP",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T05:45:22.052031",
+            "serverTimestamp": "2021-05-05T05:45:38",
+            "SID": "BPT",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         },
+         {
+            "hostname": "sapbptst",
+            "instanceNr": 10,
+            "httpPort": 51013,
+            "httpsPort": 51014,
+            "startPriority": "1",
+            "features": "GATEWAY|MESSAGESERVER|ENQUE|WEBDISP",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T05:45:22.052031",
+            "serverTimestamp": "2021-05-05T05:45:38",
+            "SID": "BPT",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         },
+         {
+            "hostname": "sapbptst",
+            "instanceNr": 12,
+            "httpPort": 51213,
+            "httpsPort": 51214,
+            "startPriority": "3",
+            "features": "ABAP|GATEWAY|ICMAN|IGS",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T05:45:22.052031",
+            "serverTimestamp": "2021-05-05T05:45:38",
+            "SID": "BPT",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         }
+      ]
+   },
+   "checks": {
+      "GetSystemInstanceList": {
+         "isEnabled": true,
+         "lastRunLocal": "2021-05-05T05:45:21.890414Z",
+         "lastRunServer": "2021-05-05T05:45:38.000000Z"
+      },
+      "GetProcessList": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:17:58.411106Z",
+         "lastRunServer": "2021-04-23T21:21:03.000000Z"
+      },
+      "ABAPGetWPTable": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:17:58.478549Z",
+         "lastRunServer": "2021-04-23T21:21:03.000000Z"
+      },
+      "GetQueueStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:17:58.174736Z",
+         "lastRunServer": "2021-04-23T21:21:03.000000Z"
+      },
+      "EnqGetStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:18:00.503741Z",
+         "lastRunServer": "2021-04-23T21:21:03.000000Z"
+      },
+      "SMON_Metrics": {
+         "isEnabled": true,
+         "lastRunLocal": null
+      },
+      "SWNC_Workload_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "SDF_Short_Dumps_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      }
+   }
+}

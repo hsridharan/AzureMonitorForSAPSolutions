@@ -1,0 +1,73 @@
+{
+   "global": {
+      "hostConfig": [
+         {
+            "hostname": "mdgsbx",
+            "instanceNr": 30,
+            "httpPort": 53013,
+            "httpsPort": 53014,
+            "startPriority": "1",
+            "features": "MESSAGESERVER|ENQUE",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T05:45:23.080635",
+            "serverTimestamp": "2021-05-05T05:45:39",
+            "SID": "DGX",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         },
+         {
+            "hostname": "mdgsbx",
+            "instanceNr": 32,
+            "httpPort": 53213,
+            "httpsPort": 53214,
+            "startPriority": "3",
+            "features": "ABAP|GATEWAY|ICMAN|IGS",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T05:45:23.080635",
+            "serverTimestamp": "2021-05-05T05:45:39",
+            "SID": "DGX",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         }
+      ]
+   },
+   "checks": {
+      "GetSystemInstanceList": {
+         "isEnabled": true,
+         "lastRunLocal": "2021-05-05T05:45:22.866565Z",
+         "lastRunServer": "2021-05-05T05:45:39.000000Z"
+      },
+      "GetProcessList": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:18:10.082451Z",
+         "lastRunServer": "2021-04-23T21:21:12.000000Z"
+      },
+      "ABAPGetWPTable": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:18:10.464154Z",
+         "lastRunServer": "2021-04-23T21:21:12.000000Z"
+      },
+      "GetQueueStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:18:10.989610Z",
+         "lastRunServer": "2021-04-23T21:21:12.000000Z"
+      },
+      "EnqGetStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:18:11.390378Z",
+         "lastRunServer": "2021-04-23T21:21:12.000000Z"
+      },
+      "SMON_Metrics": {
+         "isEnabled": true,
+         "lastRunLocal": null
+      },
+      "SWNC_Workload_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "SDF_Short_Dumps_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      }
+   }
+}

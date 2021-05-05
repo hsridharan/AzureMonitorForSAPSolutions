@@ -1,0 +1,101 @@
+{
+   "global": {
+      "hostConfig": [
+         {
+            "hostname": "AZSAPTSTADSCL3",
+            "instanceNr": 10,
+            "httpPort": 51013,
+            "httpsPort": 51014,
+            "startPriority": "0.5",
+            "features": "ENQREP",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T16:30:36.417060",
+            "serverTimestamp": "2021-05-05T16:30:54",
+            "SID": "AST",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         },
+         {
+            "hostname": "AZSAPTSTADSCL4",
+            "instanceNr": 10,
+            "httpPort": 51013,
+            "httpsPort": 51014,
+            "startPriority": "0.5",
+            "features": "ENQREP",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T16:30:36.417060",
+            "serverTimestamp": "2021-05-05T16:30:54",
+            "SID": "AST",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         },
+         {
+            "hostname": "adstst",
+            "instanceNr": 20,
+            "httpPort": 52013,
+            "httpsPort": 52014,
+            "startPriority": "1",
+            "features": "GATEWAY|MESSAGESERVER|ENQUE",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T16:30:36.417060",
+            "serverTimestamp": "2021-05-05T16:30:54",
+            "SID": "AST",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         },
+         {
+            "hostname": "adstst",
+            "instanceNr": 21,
+            "httpPort": 52113,
+            "httpsPort": 52114,
+            "startPriority": "3",
+            "features": "J2EE|ICMAN|IGS",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T16:30:36.417060",
+            "serverTimestamp": "2021-05-05T16:30:54",
+            "SID": "AST",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         }
+      ]
+   },
+   "checks": {
+      "GetSystemInstanceList": {
+         "isEnabled": true,
+         "lastRunLocal": "2021-05-05T16:30:35.875466Z",
+         "lastRunServer": "2021-05-05T16:30:54.000000Z"
+      },
+      "GetProcessList": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:17:50.132484Z",
+         "lastRunServer": "2021-04-23T21:20:54.000000Z"
+      },
+      "ABAPGetWPTable": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:17:54.196007Z",
+         "lastRunServer": "2021-04-23T21:20:55.000000Z"
+      },
+      "GetQueueStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:17:54.816251Z",
+         "lastRunServer": "2021-04-23T21:20:56.000000Z"
+      },
+      "EnqGetStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": "2021-04-23T21:17:54.866803Z",
+         "lastRunServer": "2021-04-23T21:20:56.000000Z"
+      },
+      "SMON_Metrics": {
+         "isEnabled": true,
+         "lastRunLocal": null
+      },
+      "SWNC_Workload_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "SDF_Short_Dumps_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      }
+   }
+}

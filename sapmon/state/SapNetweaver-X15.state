@@ -1,0 +1,69 @@
+{
+   "global": {
+      "hostConfig": [
+         {
+            "hostname": "sapsbx15",
+            "instanceNr": 30,
+            "httpPort": 53013,
+            "httpsPort": 53014,
+            "startPriority": "1",
+            "features": "MESSAGESERVER|ENQUE|WEBDISP",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T05:45:21.038716",
+            "serverTimestamp": "2021-05-05T05:45:37",
+            "SID": "X15",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         },
+         {
+            "hostname": "sapsbx15",
+            "instanceNr": 32,
+            "httpPort": 53213,
+            "httpsPort": 53214,
+            "startPriority": "3",
+            "features": "ABAP|GATEWAY|ICMAN|IGS",
+            "dispstatus": "SAPControl-GREEN",
+            "timestamp": "2021-05-05T05:45:21.038716",
+            "serverTimestamp": "2021-05-05T05:45:37",
+            "SID": "X15",
+            "subdomain": "redmond.corp.microsoft.com",
+            "SAPMON_VERSION": "2.12"
+         }
+      ]
+   },
+   "checks": {
+      "GetSystemInstanceList": {
+         "isEnabled": true,
+         "lastRunLocal": "2021-05-05T05:45:20.590513Z",
+         "lastRunServer": "2021-05-05T05:45:37.000000Z"
+      },
+      "GetProcessList": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "ABAPGetWPTable": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "GetQueueStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "EnqGetStatistic": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "SMON_Metrics": {
+         "isEnabled": true,
+         "lastRunLocal": null
+      },
+      "SWNC_Workload_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      },
+      "SDF_Short_Dumps_Metrics": {
+         "isEnabled": false,
+         "lastRunLocal": null
+      }
+   }
+}

@@ -3,7 +3,7 @@
         {
             "name": "GetSystemInstanceList",
             "description": "SAP Netweaver GetSystemInstanceList",
-            "customLog": "SapNetweaver_GetSystemInstanceList",
+            "customLog": "SapNetweaver_GetSystemInstanceList_kk",
             "frequencySecs": 60,
             "includeInCustomerAnalytics": true,
             "actions": [
@@ -15,8 +15,9 @@
         {
             "name": "GetProcessList",
             "description": "SAP Netweaver GetProcessList",
-            "customLog": "SapNetweaver_GetProcessList",
+            "customLog": "SapNetweaver_GetProcessList_kk",
             "frequencySecs": 60,
+            "enabled":false,
             "includeInCustomerAnalytics": true,
             "actions": [
                 {
@@ -32,8 +33,9 @@
         {
             "name": "ABAPGetWPTable",
             "description": "SAP Netweaver ABAPGetWPTable",
-            "customLog": "SapNetweaver_ABAPGetWPTable",
+            "customLog": "SapNetweaver_ABAPGetWPTable_kk",
             "frequencySecs": 60,
+            "enabled":false,
             "includeInCustomerAnalytics": false,
             "actions": [
                 {
@@ -49,8 +51,9 @@
         {
             "name": "GetQueueStatistic",
             "description": "SAP Netweaver GetQueueStatistic",
-            "customLog": "SapNetweaver_GetQueueStatistic",
+            "customLog": "SapNetweaver_GetQueueStatistic_kk",
             "frequencySecs": 60,
+            "enabled":false,
             "includeInCustomerAnalytics": true,
             "actions": [
                 {
@@ -66,8 +69,9 @@
         {
             "name": "EnqGetStatistic",
             "description": "SAP Netweaver EnqGetStatistic",
-            "customLog": "SapNetweaver_EnqGetStatistic",
+            "customLog": "SapNetweaver_EnqGetStatistic_kk",
             "frequencySecs": 60,
+            "enabled":false,
             "includeInCustomerAnalytics": true,
             "actions": [
                 {
@@ -83,7 +87,7 @@
         {
             "name": "SMON_Metrics",
             "description": "SAP Netweaver SMON",
-            "customLog": "SapNetweaver_SMON",
+            "customLog": "SapNetweaver_SMON_kk",
             "frequencySecs": 60,
             "includeInCustomerAnalytics": true,
             "actions": [
@@ -96,8 +100,9 @@
         {
             "name": "SWNC_Workload_Metrics",
             "description": "SAP Netweaver SWNC",
-            "customLog": "SapNetweaver_SWNC",
+            "customLog": "SapNetweaver_SWNC_kk",
             "frequencySecs": 300,
+            "enabled":false,
             "includeInCustomerAnalytics": true,
             "actions": [
                 {
@@ -109,8 +114,9 @@
         {
             "name": "SDF_Short_Dumps_Metrics",
             "description": "SAP Netweaver Short Dumps",
-            "customLog": "SapNetweaver_ShortDumps",
+            "customLog": "SapNetweaver_ShortDumps_kk",
             "frequencySecs": 300,
+            "enabled":false,
             "includeInCustomerAnalytics": false,
             "actions": [
                 {
