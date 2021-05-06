@@ -109,8 +109,6 @@ class sapNetweaverProviderInstance(ProviderInstance):
             return False
         self.sapInstanceNr = str(instanceNr).zfill(2)
         self.sapSubdomain = self.providerProperties.get("sapSubdomain", "")
-
-
         self.sapUsername = self.providerProperties.get('sapUsername', None)
         self.sapPassword = self.providerProperties.get('sapPassword', None)
         self.sapClientId = self.providerProperties.get('sapClientId', None)
@@ -292,6 +290,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
                                                    sapSid=self.sapSid,
                                                    sapClient=str(self.sapClientId),
                                                    sapLogonGroup = str(self.sapLogonGroup),
+                                                   #sapLogonGroup = "Technical",
                                                    sapUsername=self.sapUsername,
                                                    sapPassword=self.sapPassword)
 
@@ -507,8 +506,8 @@ class sapNetweaverProviderInstance(ProviderInstance):
         return healthyInstances[0]
 
     """
-    fetch cached instance list for this provider and filter down to the list 'ABAP' feature functions
-    that are healthy (ie. have dispstatus attribute of 'SAPControl-GREEN').  Just return first in the list.
+    fetch cached instance list for this provider and filter down to the list 'MESSAGESERVER' feature functions
+    return the available message server
     """
     def getMessageServerInstance(self):
         # Use cached list of instances if available since they don't change that frequently,
@@ -519,22 +518,6 @@ class sapNetweaverProviderInstance(ProviderInstance):
         # return first healthy instance in list
         return dispatcherInstances[0]
 
-    """
-    fetch cached instance list for this provider and filter down to the list 'ABAP' feature functions
-    that are healthy (ie. have dispstatus attribute of 'SAPControl-GREEN').  Just return first in the list.
-    """
-    def getActiveMessageServerInstance(self):
-        # Use cached list of instances if available since they don't change that frequently,
-        # and filter down to only healthy dispatcher instances since RFC direct application server connection
-        # only works against dispatchera
-        dispatcherInstances = self.getInstances(filterFeatures=['MSSERV'], filterType='include', useCache=True)
-        healthyInstances = [instance for instance in dispatcherInstances if 'GREEN' in instance['dispstatus']]
-
-        if (len(healthyInstances) == 0):
-            raise Exception("No healthy ABAP/dispatcher instance found for %s" % self.sapSid)
-
-        # return first healthy instance in list
-        return healthyInstances[0]
     """
     given a list of sap instances and a set of instance features (ie. functions) to include or exclude,
     apply filtering logic and return only those instances that match the filter conditions:

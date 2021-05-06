@@ -82,8 +82,8 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
         self.tracer = tracer
         self.logTag = logTag
         self.sapSid = sapSid
-        self.sapHostName = sapHostName
         self.sapSubdomain = sapSubdomain
+        self.sapHostName = sapHostName
         self.fqdn = self._getFullyQualifiedDomainName()
         self.sapSysNr = sapSysNr
         self.sapClient = sapClient
@@ -91,9 +91,9 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
         self.sapPassword = sapPassword
         self.columnFilterList = columnFilterList
         self.tzinfo = serverTimeZone
-        self.sapLogonGroup = sapLogonGroup,
-      #  self.msserv = "36%s" % self.sapSysNr
-        self.msserv = '3630'
+        self.sapLogonGroup = sapLogonGroup
+        self.msserv = "36%s" % self.sapSysNr
+        #self.msserv = '3630'
 
         super().__init__(tracer, logTag)
 
@@ -269,8 +269,9 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
             # load balancing logon:  mshost, msserv, sysid, group
             connection = Connection(#ashost=self.fqdn, 
                                     sysnr=self.sapSysNr, 
-                                    mshost = self.sapHostName,
-                                    logonGroup = self.sapLogonGroup,
+                                    mshost = self._getFullyQualifiedDomainName(),
+                                    #Group = self.sapLogonGroup,
+                                    Group = "Technical",
                                     msserv = self.msserv,
                                     ssid = self.sapSid,
                                     client=self.sapClient, 
