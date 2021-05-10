@@ -238,7 +238,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
     return a netweaver RFC client initialized with the first healthy ABAP/dispatcher instance we find
     for this SID.  If no healthy ABAP instances, this method will throw exception
     """
-    def _oldgetRfcClient(self, logTag: str) -> NetWeaverMetricClient:
+    def getApplicationRfcClient(self, logTag: str) -> NetWeaverMetricClient:
         # RFC connections against direct application server instances can only be made to 'ABAP' instances
         dispatcherInstance = self.getMessageServerInstance()
 
@@ -254,33 +254,11 @@ class sapNetweaverProviderInstance(ProviderInstance):
                                                    sapUsername=self.sapUsername,
                                                    sapPassword=self.sapPassword)
 
-    def validate(self) -> bool:
-        logTag = "[%s][%s][validation]" % (self.fullName, self.sapSid)
-
-        # HACK: Load content json to fetch the list of APIs in the checks
-        self.initContent()
-
-        try:
-            self._validateSoapClient()
-        except Exception as e:
-            self.tracer.error("%s SOAP API validation failure: %s", logTag, e, exc_info=True)
-            return False
-
-        try:
-            self._validateRfcClient()
-        except Exception as e:
-            self.tracer.error("%s RFC client validation failure: %s", logTag, e, exc_info=True)
-            return False
-
-        return True
-
-
-
     """
-    return a netweaver RFC client initialized with the first healthy ABAP/dispatcher instance we find
-    for this SID.  If no healthy ABAP instances, this method will throw exception
+    return a netweaver RFC client initialized with "MESSAGESERVER? instance we find
+    for this SID.  
     """
-    def getRfcClient(self, logTag: str) -> NetWeaverMetricClient:
+    def getMessageServerClient(self, logTag: str) -> NetWeaverMetricClient:
         # RFC connections against direct application server instances can only be made to 'ABAP' instances
         dispatcherInstance = self.getMessageServerInstance()
 
@@ -928,7 +906,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             latencyStartTime = time()
             
             # initialize a client for the first healthy ABAP/Dispatcher instance we find
-            client = self.providerInstance.getRfcClient(logTag=self.logTag)
+            client = self.providerInstance.getMessageServerClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client
             sapHostnameStr = "%s|%s" % (client.Hostname, client.InstanceNr)
@@ -975,7 +953,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             latencyStartTime = time()
 
             # initialize a client for the first healthy ABAP/Dispatcher instance we find
-            client = self.providerInstance.getRfcClient(logTag=self.logTag)
+            client = self.providerInstance.getMessageServerClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client
             sapHostnameStr = "%s|%s" % (client.Hostname, client.InstanceNr)
@@ -1024,7 +1002,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             latencyStartTime = time()
 
             # initialize a client for the first healthy ABAP/Dispatcher instance we find
-            client = self.providerInstance.getRfcClient(logTag=self.logTag)
+            client = self.providerInstance.getMessageServerClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client
             sapHostnameStr = "%s|%s" % (client.Hostname, client.InstanceNr)
