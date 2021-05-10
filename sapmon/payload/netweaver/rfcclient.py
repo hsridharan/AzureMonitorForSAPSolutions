@@ -269,7 +269,7 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
             # load balancing logon:  mshost, msserv, sysid, group
             connection = Connection(#ashost=self.fqdn, 
                                     sysnr=self.sapSysNr, 
-                                    mshost = self.fqdn,
+                                     mshost = self.fqdn,
                                     #Group = self.sapLogonGroup,
                                     Group = "Technical",
                                     msserv = self.msserv,
@@ -291,31 +291,6 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
             #                  self.logTag, self.fqdn, self.sapSysNr, e)
             raise
 
-    """
-    establish rfc  connection to sap.
-    """
-    def _oldgetConnection(self) -> Connection:
-        try:
-            # Direct application server logon:  ashost, sysnr
-            # load balancing logon:  mshost, msserv, sysid, group
-            connection = Connection(ashost=self.fqdn, 
-                                    sysnr=self.sapSysNr, 
-                                    client=self.sapClient, 
-                                    user=self.sapUsername, 
-                                    passwd=self.sapPassword)
-            return connection
-        except CommunicationError as e:
-            #self.tracer.error("[%s] error establishing connection with hostname: %s, sapSysNr: %s, error: %s",
-            #                  self.logTag, self.fqdn, self.sapSysNr, e)
-            raise
-        except LogonError as e:
-            #self.tracer.error("[%s] Incorrect credentials used to connect with hostname: %s username: %s, error: %s",
-            #                  self.logTag, self.fqdn, self.sapUsername, e)
-            raise
-        except Exception as e:
-            #self.tracer.error("[%s] Error occured while establishing connection to hostname: %s, sapSysNr: %s, error: %s ",
-            #                  self.logTag, self.fqdn, self.sapSysNr, e)
-            raise
     """
     make RFC call to get system time
     """
