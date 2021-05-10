@@ -143,6 +143,21 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "HANADatasize",
+            "description": "SAP HANA size",
+            "customLog": "SapHana_size01",
+            "frequencySecs": 21600,
+            "includeInCustomerAnalytics": false,
+            "actions": [
+                {
+                    "type": "ExecuteSql",
+                    "parameters": {
+                        "sql": " SELECT SYSTEM_ID, DATABASE_NAME, TABLE_NAME, ROUND(SUM(ESTIMATED_MAX_MEMORY_SIZE_IN_TOTAL/1024/1024/1024),3) ESTIMATED_MAX_MEMORY_SIZE_IN_TOTAL_GIB, ROUND(SUM((MEMORY_SIZE_IN_TOTAL)/1024/1024/1024),3) MEMORY_SIZE_IN_TOTAL_GIB, SUM(RECORD_COUNT) RECORDS, COUNT(*) PARTITION_COUNT FROM M_DATABASE, SYS.M_CS_TABLES GROUP BY SYSTEM_ID, DATABASE_NAME, TABLE_NAME  UNION ALL SELECT SYSTEM_ID, DATABASE_NAME, 'ALL_TABLES' as TABLE_NAME, ROUND(SUM(ESTIMATED_MAX_MEMORY_SIZE_IN_TOTAL/1024/1024/1024),3) ESTIMATED_MAX_MEMORY_SIZE_IN_TOTAL_GIB, ROUND(SUM((MEMORY_SIZE_IN_TOTAL)/1024/1024/1024),3) MEMORY_SIZE_IN_TOTAL_GIB, SUM(RECORD_COUNT) RECORDS, COUNT(*) PARTITION_COUNT, CURRENT_UTCTIMESTAMP AS _SERVER_UTC FROM DUMMY, M_DATABASE, SYS.M_CS_TABLES GROUP BY SYSTEM_ID, DATABASE_NAME ORDER BY ESTIMATED_MAX_MEMORY_SIZE_IN_TOTAL_GIB DESC  LIMIT 11"
+                                  }
+                }
+            ]
         }
     ]
 }
