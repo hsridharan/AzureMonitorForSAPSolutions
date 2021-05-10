@@ -3,7 +3,7 @@ import logging
 import os
 
 # Version of the payload script
-PAYLOAD_VERSION = "2.12"
+PAYLOAD_VERSION = "2.13"
 
 # Default file/directory locations
 PATH_PAYLOAD       = os.path.dirname(os.path.realpath(__file__))
@@ -34,6 +34,7 @@ CONFIG_REFRESH_IN_SECONDS = 86400
 # Parallel configurations
 NUMBER_OF_THREADS     = 10
 CHECK_WAIT_IN_SECONDS = 5
+HEARTBEAT_WAIT_IN_SECONDS = 60
 
 # Naming conventions for generated resources
 KEYVAULT_NAMING_CONVENTION               = "sapmon-kv-%s"
