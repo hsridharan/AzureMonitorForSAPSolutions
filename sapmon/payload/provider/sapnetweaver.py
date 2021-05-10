@@ -4,7 +4,6 @@ import logging
 from datetime import datetime, timedelta, timezone
 from time import time
 from typing import Any, Callable
-import re
 import requests
 from requests import Session
 from threading import Lock
@@ -16,6 +15,7 @@ from zeep.transports import Transport
 from zeep.exceptions import Fault
 
 # Payload modules
+from const import PAYLOAD_VERSION
 from const import *
 from helper.azure import AzureStorageAccount
 from helper.context import *
@@ -58,6 +58,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
         self.sapPassword = None
         self.sapClientId = None
         self.sapRfcSdkBlobUrl = None
+        self.sapLogonGroupId = None
 
         # provider instance flag for whether RFC calls should be enabled for this specific Netweaver provider instance
         self._areRfcCallsEnabled = None
@@ -108,41 +109,11 @@ class sapNetweaverProviderInstance(ProviderInstance):
             return False
         self.sapInstanceNr = str(instanceNr).zfill(2)
         self.sapSubdomain = self.providerProperties.get("sapSubdomain", "")
-
         self.sapUsername = self.providerProperties.get('sapUsername', None)
         self.sapPassword = self.providerProperties.get('sapPassword', None)
         self.sapClientId = self.providerProperties.get('sapClientId', None)
+        self.sapLogonGroup = self.providerProperties.get('sapLogonGroup',None)
         self.sapRfcSdkBlobUrl = self.providerProperties.get('sapRfcSdkBlobUrl', None)
-
-        # if user did not specify password directly via UI, check to see if they instead
-        # provided link to Key Vault secret
-        if not self.sapPassword:
-            sapPasswordKeyVaultUrl = self.providerProperties.get("sapPasswordKeyVaultUrl", None)
-            if sapPasswordKeyVaultUrl:
-                self.tracer.info("%s sapPassword key vault URL specified, attempting to fetch from %s", self.logTag, sapPasswordKeyVaultUrl)
-
-                try:
-                    keyVaultUrlPatternMatch = re.match(REGEX_EXTERNAL_KEYVAULT_URL,
-                                                       sapPasswordKeyVaultUrl,
-                                                       re.IGNORECASE)
-                    keyVaultName = keyVaultUrlPatternMatch.group(1)
-                    secretName = keyVaultUrlPatternMatch.group(2)
-                except Exception as e:
-                    self.tracer.error("%s invalid sapPassword Key Vault secret url format: %s", self.logTag, sapPasswordKeyVaultUrl)
-                    return False
-                
-                try:
-                    kv = AzureKeyVault(self.tracer, keyVaultName, self.ctx.msiClientId)
-                    self.sapPassword = kv.getSecret(secretName, None).value
-
-                    if not self.sapPassword:
-                        raise Exception("failed to read sapPassword secret")
-                except Exception as e:
-                    self.tracer.error("%s error fetching sapPassword secret from keyVault url: %s, %s",
-                                      self.logTag, 
-                                      sapPasswordKeyVaultUrl, 
-                                      e)
-                    return False
 
         return True
 
@@ -269,7 +240,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
     """
     def getRfcClient(self, logTag: str) -> NetWeaverMetricClient:
         # RFC connections against direct application server instances can only be made to 'ABAP' instances
-        dispatcherInstance = self.getActiveDispatcherInstance()
+        dispatcherInstance = self.getMessageServerInstance()
 
         return MetricClientFactory.getMetricClient(tracer=self.tracer, 
                                                    logTag=logTag,
@@ -278,6 +249,8 @@ class sapNetweaverProviderInstance(ProviderInstance):
                                                    sapSubdomain=self.sapSubdomain,
                                                    sapSid=self.sapSid,
                                                    sapClient=str(self.sapClientId),
+                                                   sapLogonGroup = str(self.sapLogonGroup),
+                                                   #sapLogonGroup = "Technical",
                                                    sapUsername=self.sapUsername,
                                                    sapPassword=self.sapPassword)
 
@@ -491,6 +464,19 @@ class sapNetweaverProviderInstance(ProviderInstance):
 
         # return first healthy instance in list
         return healthyInstances[0]
+
+    """
+    fetch cached instance list for this provider and filter down to the list 'MESSAGESERVER' feature functions
+    return the available message server
+    """
+    def getMessageServerInstance(self):
+        # Use cached list of instances if available since they don't change that frequently,
+        # and filter down to only healthy dispatcher instances since RFC direct application server connection
+        # only works against dispatchera
+        dispatcherInstances = self.getInstances(filterFeatures=['MESSAGESERVER'], filterType='include', useCache=True)
+     
+        # return first healthy instance in list
+        return dispatcherInstances[0]
 
     """
     given a list of sap instances and a set of instance features (ie. functions) to include or exclude,
@@ -847,10 +833,6 @@ class sapNetweaverProviderCheck(ProviderCheck):
             try:
                 client = self.providerInstance.getClient(instance['hostname'], httpProtocol, port)
                 results = self.providerInstance.callSoapApi(client, apiName)
-                if(apiName == "GetProcessList"):
-                    results = self._sanitizeGetProcessList(results)
-                elif(apiName == "ABAPGetWPTable"):
-                    results = self._sanitizeABAPGetWPTable(results)
             except Exception as e:
                 self.tracer.error("%s unable to call the Soap Api %s - %s://%s:%s, %s", self.logTag, apiName, httpProtocol, instance['hostname'], port, e, exc_info=True)
                 continue
@@ -883,62 +865,6 @@ class sapNetweaverProviderCheck(ProviderCheck):
 
     def _actionExecuteEnqGetStatistic(self, apiName: str, filterFeatures: list, filterType: str) -> None:
         self._executeWebServiceRequest(apiName, filterFeatures, filterType, self._parseResult)
-
-    """
-    Method to parse the value based on the key provided and set the values with None value to empty string ''
-    """
-    def _getKeyValue(self, dictionary, key, apiName):
-            if key not in dictionary:
-                raise ValueError("Result received for api %s does not contain key: %s"% (apiName, key))
-            if(dictionary[key] == None):
-                dictionary[key] = ""
-            return dictionary[key]
-
-    """
-    Method to parse the results from ABAPGetWPTable and set the strings with None value to empty string ''
-    """
-    def _sanitizeABAPGetWPTable(self, records: list) -> list:
-       apiName = "ABAPGetWPTable"
-       processed_results = list()
-       for record in records:
-            processed_result = {
-                "Action": self._getKeyValue(record, 'Action', apiName),
-                "Client": self._getKeyValue(record, 'Client', apiName),
-                "Cpu": self._getKeyValue(record, 'Cpu', apiName),
-                "Err": self._getKeyValue(record, 'Err', apiName),
-                "No": self._getKeyValue(record, 'No', apiName),
-                "Pid": self._getKeyValue(record, 'Pid', apiName),
-                "Program": self._getKeyValue(record, 'Program', apiName),
-                "Reason": self._getKeyValue(record, 'Reason', apiName),
-                "Sem": self._getKeyValue(record, 'Sem', apiName),
-                "Start": self._getKeyValue(record, 'Start', apiName),
-                "Status": self._getKeyValue(record, 'Status', apiName),
-                "Table": self._getKeyValue(record, 'Table', apiName),
-                "Time": self._getKeyValue(record, 'Time', apiName),
-                "Typ": self._getKeyValue(record, 'Typ', apiName),
-                "User": self._getKeyValue(record, 'User', apiName)
-            }
-            processed_results.append(processed_result)
-       return processed_results
-
-    """
-    Method to parse the results from GetProcessList and set the strings with None value to empty string ''
-    """
-    def _sanitizeGetProcessList(self, records: list) -> list:
-       apiName = "GetProcessList"
-       processed_results = list()
-       for record in records:
-            processed_result = {
-                "description": self._getKeyValue(record, 'description', apiName),
-                "dispstatus": self._getKeyValue(record, 'dispstatus', apiName),
-                "elapsedtime": self._getKeyValue(record, 'elapsedtime', apiName),
-                "name": self._getKeyValue(record, 'name', apiName),
-                "pid": self._getKeyValue(record, 'pid', apiName),
-                "starttime": self._getKeyValue(record, 'starttime', apiName),
-                "textstatus": self._getKeyValue(record, 'textstatus', apiName)
-            }
-            processed_results.append(processed_result)
-       return processed_results
 
     """
     netweaver provider check action to query for SDF/SMON Analysis Run metrics

@@ -77,12 +77,13 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
                  columnFilterList: List[str],
                  serverTimeZone: tzinfo,
                  sapSid: str,
+                 sapLogonGroup: str,
                  **kwargs) -> None:
         self.tracer = tracer
         self.logTag = logTag
         self.sapSid = sapSid
-        self.sapHostName = sapHostName
         self.sapSubdomain = sapSubdomain
+        self.sapHostName = sapHostName
         self.fqdn = self._getFullyQualifiedDomainName()
         self.sapSysNr = sapSysNr
         self.sapClient = sapClient
@@ -90,6 +91,9 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
         self.sapPassword = sapPassword
         self.columnFilterList = columnFilterList
         self.tzinfo = serverTimeZone
+        self.sapLogonGroup = sapLogonGroup
+        self.msserv = "36%s" % self.sapSysNr
+        #self.msserv = '3630'
 
         super().__init__(tracer, logTag)
 
@@ -263,6 +267,37 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
         try:
             # Direct application server logon:  ashost, sysnr
             # load balancing logon:  mshost, msserv, sysid, group
+            connection = Connection(#ashost=self.fqdn, 
+                                    sysnr=self.sapSysNr, 
+                                    mshost = self.fqdn,
+                                    #Group = self.sapLogonGroup,
+                                    Group = "Technical",
+                                    msserv = self.msserv,
+                                    ssid = self.sapSid,
+                                    client=self.sapClient, 
+                                    user=self.sapUsername, 
+                                    passwd=self.sapPassword)
+            return connection
+        except CommunicationError as e:
+            #self.tracer.error("[%s] error establishing connection with hostname: %s, sapSysNr: %s, error: %s",
+            #                  self.logTag, self.fqdn, self.sapSysNr, e)
+            raise
+        except LogonError as e:
+            #self.tracer.error("[%s] Incorrect credentials used to connect with hostname: %s username: %s, error: %s",
+            #                  self.logTag, self.fqdn, self.sapUsername, e)
+            raise
+        except Exception as e:
+            #self.tracer.error("[%s] Error occured while establishing connection to hostname: %s, sapSysNr: %s, error: %s ",
+            #                  self.logTag, self.fqdn, self.sapSysNr, e)
+            raise
+
+    """
+    establish rfc  connection to sap.
+    """
+    def _oldgetConnection(self) -> Connection:
+        try:
+            # Direct application server logon:  ashost, sysnr
+            # load balancing logon:  mshost, msserv, sysid, group
             connection = Connection(ashost=self.fqdn, 
                                     sysnr=self.sapSysNr, 
                                     client=self.sapClient, 
@@ -281,7 +316,6 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
             #self.tracer.error("[%s] Error occured while establishing connection to hostname: %s, sapSysNr: %s, error: %s ",
             #                  self.logTag, self.fqdn, self.sapSysNr, e)
             raise
-
     """
     make RFC call to get system time
     """
@@ -753,7 +787,7 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
 
         for record in records:
             # parse DATUM/TIME fields into serverTimestamp
-            record['serverTimestamp'] = self._datetimeFromDateAndTimeString(record['E2E_DATE'], record['E2E_TIME'])
+            record['UTC Time Stamp'] = self._datetimeFromDateAndTimeString(record['E2E_DATE'], record['E2E_TIME'])
 
             # parse SERVER field into hostname/SID/InstanceNr properties
             m = serverRegex.match(record['E2E_HOST'])

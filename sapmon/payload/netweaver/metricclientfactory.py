@@ -68,6 +68,7 @@ class MetricClientFactory:
         try:
             import pyrfc
             from netweaver.rfcclient import NetWeaverRfcClient
+
             return NetWeaverRfcClient(tracer=tracer,
                                    logTag=logTag,
                                    sapHostName=kwargs.get("sapHostName", None),
@@ -76,6 +77,7 @@ class MetricClientFactory:
                                    sapClient=kwargs.get("sapClient", None),
                                    sapUsername=kwargs.get("sapUsername", None),
                                    sapPassword=kwargs.get("sapPassword", None),
+                                   sapLogonGroup=kwargs.get("sapLogonGroup", None),
                                    sapSid=kwargs.get("sapSid", None),
                                    columnFilterList=None,
                                    serverTimeZone=kwargs.get("serverTimeZone", None))
