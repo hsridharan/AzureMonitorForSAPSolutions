@@ -599,7 +599,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
                 sapNetweaverProviderInstance._isRfcInstalled = self._trySetupRfcSdk()
                 
             self._areRfcCallsEnabled = sapNetweaverProviderInstance._isRfcInstalled
-            
+
             return self._areRfcCallsEnabled
 
         except Exception as e:
@@ -734,6 +734,10 @@ class sapNetweaverProviderInstance(ProviderInstance):
 class sapNetweaverProviderCheck(ProviderCheck):
     lastResult = []
 
+    # hard-coded set of action names that require RFC SDK to be usable 
+    # and can override runtime isEnabled() check if RFC is not usable
+    rfcCheckNames = {'SMON_Metrics', 'SWNC_Workload_Metrics', 'SDF_Short_Dumps_Metrics'}
+
     def __init__(self,
         provider: ProviderInstance,
         **kwargs
@@ -744,6 +748,28 @@ class sapNetweaverProviderCheck(ProviderCheck):
 
         # provider check common logging prefix
         self.logTag = "[%s][%s]" % (self.fullName, self.providerInstance.sapSid)
+
+    """
+    return flag indicating whether this check instances requires the SAP RFC SDK to be installed and usable
+    """
+    def doesCheckRequireRfcSdk(self) -> bool:
+        return self.name in sapNetweaverProviderCheck.rfcCheckNames
+
+    """
+    override base ProviderCheck implementation to allow RFC metric collection methods enabled in
+    the default Provider JSON configuration yet treated as disabled at runtime if RFC SDK
+    is not configured (to reduce log spam)
+    """
+    def isEnabled(self) -> bool:
+        if not self.state["isEnabled"]:
+            return False
+        
+        # if this check requires RFC and RFC is not installed, then treat as disabled
+        if (self.doesCheckRequireRfcSdk()):
+            if (not self.providerInstance.areRfcMetricsEnabled()):
+                return False
+
+        return True
 
     def _getFormattedTimestamp(self) -> str:
         return datetime.utcnow().isoformat()
