@@ -275,7 +275,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
     for this SID.  
     """
     def getRfcClient(self, logTag: str) -> NetWeaverMetricClient:
-        # RFC connections against direct application server instances can only be made to 'ABAP' instances
+        # RFC connections against application server instances can be made through 'MESSAGESERVER' instances
         dispatcherInstance = self.getMessageServerInstance()
 
         return MetricClientFactory.getMetricClient(tracer=self.tracer, 
@@ -509,7 +509,10 @@ class sapNetweaverProviderInstance(ProviderInstance):
         # and filter down to only healthy dispatcher instances since RFC direct application server connection
         # only works against dispatchera
         dispatcherInstances = self.getInstances(filterFeatures=['MESSAGESERVER'], filterType='include', useCache=True)
-     
+        
+        if (len(dispatcherInstances) == 0):
+            raise Exception("No MESSAGESERVER instance found for %s" % self.sapSid)
+        
         # return first healthy instance in list
         return dispatcherInstances[0]
     
@@ -603,9 +606,10 @@ class sapNetweaverProviderInstance(ProviderInstance):
             if (not self.sapUsername or
                 not self.sapPassword or
                 not self.sapClientId or
-                not self.sapRfcSdkBlobUrl):
+                not self.sapRfcSdkBlobUrl or
+                not self.sapLogonGroup):
                 self.tracer.info("%s Netweaver RFC calls disabled for because missing one or more required " +
-                                 "config properties: sapUsername, sapPassword, sapClientId, and sapRfcSdkBlobUrl",
+                                 "config properties: sapUsername, sapPassword, sapClientId, sapLogonGroup and sapRfcSdkBlobUrl",
                                  self.logTag)
                 self._areRfcCallsEnabled = False
                 return False
@@ -980,7 +984,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             # track latency of entire method excecution with dependencies
             latencyStartTime = time()
             
-            # initialize a client for the first healthy ABAP/Dispatcher instance we find
+            # initialize a client for the first healthy MessageServer instance we find
             client = self.providerInstance.getRfcClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client
@@ -1027,7 +1031,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             # track latency of entire method excecution with dependencies
             latencyStartTime = time()
 
-            # initialize a client for the first healthy ABAP/Dispatcher instance we find
+            # initialize a client for the first healthy MessageServer instance we find
             client = self.providerInstance.getRfcClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client
@@ -1076,7 +1080,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             # track latency of entire method excecution with dependencies
             latencyStartTime = time()
 
-            # initialize a client for the first healthy ABAP/Dispatcher instance we find
+            # initialize a client for the first healthy MessageServer instance we find
             client = self.providerInstance.getRfcClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client

@@ -92,8 +92,8 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
         self.columnFilterList = columnFilterList
         self.tzinfo = serverTimeZone 
         self.sapLogonGroup = sapLogonGroup
-        self.msserv = "36%s" % self.sapSysNr
-
+        self.msserv = "36%s" % self.sapSysNr.zfill(2)
+        
         super().__init__(tracer, logTag)
 
     #####
@@ -258,36 +258,24 @@ class NetWeaverRfcClient(NetWeaverMetricClient):
             return self.sapHostName + "." + self.sapSubdomain
         else:
             return self.sapHostName
+    
     """
     establish rfc message server connection to sap.
     """
     def _getMessageServerConnection(self) -> Connection:
-        try:
-            # Direct application server logon:  ashost, sysnr
-            # load balancing logon:  mshost, msserv, sysid, group
-            connection = Connection(#ashost=self.fqdn, 
-                                    sysnr=self.sapSysNr, 
-                                     mshost = self.fqdn,
-                                    Group = self.sapLogonGroup,
-                                    msserv = self.msserv,
-                                    ssid = self.sapSid,
-                                    client=self.sapClient, 
-                                    user=self.sapUsername, 
-                                    passwd=self.sapPassword)
-            return connection
-        except CommunicationError as e:
-            #self.tracer.error("[%s] error establishing connection with hostname: %s, sapSysNr: %s, error: %s",
-            #                  self.logTag, self.fqdn, self.sapSysNr, e)
-            raise
-        except LogonError as e:
-            #self.tracer.error("[%s] Incorrect credentials used to connect with hostname: %s username: %s, error: %s",
-            #                  self.logTag, self.fqdn, self.sapUsername, e)
-            raise
-        except Exception as e:
-            #self.tracer.error("[%s] Error occured while establishing connection to hostname: %s, sapSysNr: %s, error: %s ",
-            #                  self.logTag, self.fqdn, self.sapSysNr, e)
-            raise
-
+        # Direct application server logon:  ashost, sysnr
+        # load balancing logon:  mshost, msserv, sysid, group
+        connection = Connection(#ashost=self.fqdn, 
+                                sysnr=self.sapSysNr, 
+                                mshost=self.fqdn,
+                                Group=self.sapLogonGroup,
+                                msserv=self.msserv,
+                                ssid=self.sapSid,
+                                client=self.sapClient, 
+                                user=self.sapUsername, 
+                                passwd=self.sapPassword)
+        return connection
+            
     """
     establish rfc  connection to sap.
     """
