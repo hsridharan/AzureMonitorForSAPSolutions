@@ -61,6 +61,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
         self.sapPassword = None
         self.sapClientId = None
         self.sapRfcSdkBlobUrl = None
+        self.sapLogonGroup = None
 
         # provider instance flag for whether RFC calls should be enabled for this specific Netweaver provider instance
         self._areRfcCallsEnabled = None
@@ -115,6 +116,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
         self.sapUsername = self.providerProperties.get('sapUsername', None)
         self.sapPassword = self.providerProperties.get('sapPassword', None)
         self.sapClientId = self.providerProperties.get('sapClientId', None)
+        self.sapLogonGroup = self.providerProperties.get('sapLogonGroup',None)
         self.sapRfcSdkBlobUrl = self.providerProperties.get('sapRfcSdkBlobUrl', None)
 
         # if user did not specify password directly via UI, check to see if they instead
@@ -269,12 +271,12 @@ class sapNetweaverProviderInstance(ProviderInstance):
             raise e
 
     """
-    return a netweaver RFC client initialized with the first healthy ABAP/dispatcher instance we find
-    for this SID.  If no healthy ABAP instances, this method will throw exception
+    return a netweaver RFC client initialized with "MESSAGESERVER" instance we find
+    for this SID.  
     """
     def getRfcClient(self, logTag: str) -> NetWeaverMetricClient:
-        # RFC connections against direct application server instances can only be made to 'ABAP' instances
-        dispatcherInstance = self.getActiveDispatcherInstance()
+        # RFC connections against application server instances can be made through 'MESSAGESERVER' instances
+        dispatcherInstance = self.getMessageServerInstance()
 
         return MetricClientFactory.getMetricClient(tracer=self.tracer, 
                                                    logTag=logTag,
@@ -283,6 +285,7 @@ class sapNetweaverProviderInstance(ProviderInstance):
                                                    sapSubdomain=self.sapSubdomain,
                                                    sapSid=self.sapSid,
                                                    sapClient=str(self.sapClientId),
+                                                   sapLogonGroup = self.sapLogonGroup,
                                                    sapUsername=self.sapUsername,
                                                    sapPassword=self.sapPassword)
 
@@ -496,7 +499,23 @@ class sapNetweaverProviderInstance(ProviderInstance):
 
         # return first healthy instance in list
         return healthyInstances[0]
-
+    
+    """
+    fetch cached instance list for this provider and filter down to the list 'MESSAGESERVER' feature functions
+    return the available message server
+    """
+    def getMessageServerInstance(self):
+        # Use cached list of instances if available since they don't change that frequently,
+        # and filter down to only healthy dispatcher instances since RFC direct application server connection
+        # only works against dispatchera
+        dispatcherInstances = self.getInstances(filterFeatures=['MESSAGESERVER'], filterType='include', useCache=True)
+        
+        if (len(dispatcherInstances) == 0):
+            raise Exception("No MESSAGESERVER instance found for %s" % self.sapSid)
+        
+        # return first healthy instance in list
+        return dispatcherInstances[0]
+    
     """
     given a list of sap instances and a set of instance features (ie. functions) to include or exclude,
     apply filtering logic and return only those instances that match the filter conditions:
@@ -587,9 +606,10 @@ class sapNetweaverProviderInstance(ProviderInstance):
             if (not self.sapUsername or
                 not self.sapPassword or
                 not self.sapClientId or
-                not self.sapRfcSdkBlobUrl):
+                not self.sapRfcSdkBlobUrl or
+                not self.sapLogonGroup):
                 self.tracer.info("%s Netweaver RFC calls disabled for because missing one or more required " +
-                                 "config properties: sapUsername, sapPassword, sapClientId, and sapRfcSdkBlobUrl",
+                                 "config properties: sapUsername, sapPassword, sapClientId, sapLogonGroup and sapRfcSdkBlobUrl",
                                  self.logTag)
                 self._areRfcCallsEnabled = False
                 return False
@@ -990,7 +1010,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             # track latency of entire method excecution with dependencies
             latencyStartTime = time()
             
-            # initialize a client for the first healthy ABAP/Dispatcher instance we find
+            # initialize a client for the first healthy MessageServer instance we find
             client = self.providerInstance.getRfcClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client
@@ -1037,7 +1057,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             # track latency of entire method excecution with dependencies
             latencyStartTime = time()
 
-            # initialize a client for the first healthy ABAP/Dispatcher instance we find
+            # initialize a client for the first healthy MessageServer instance we find
             client = self.providerInstance.getRfcClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client
@@ -1086,7 +1106,7 @@ class sapNetweaverProviderCheck(ProviderCheck):
             # track latency of entire method excecution with dependencies
             latencyStartTime = time()
 
-            # initialize a client for the first healthy ABAP/Dispatcher instance we find
+            # initialize a client for the first healthy MessageServer instance we find
             client = self.providerInstance.getRfcClient(logTag=self.logTag)
 
             # update logging prefix with the specific instance details of the client

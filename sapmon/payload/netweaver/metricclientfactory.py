@@ -76,10 +76,10 @@ class MetricClientFactory:
                                    sapClient=kwargs.get("sapClient", None),
                                    sapUsername=kwargs.get("sapUsername", None),
                                    sapPassword=kwargs.get("sapPassword", None),
+                                   sapLogonGroup=kwargs.get("sapLogonGroup", None),
                                    sapSid=kwargs.get("sapSid", None),
                                    columnFilterList=None,
                                    serverTimeZone=kwargs.get("serverTimeZone", None))
-
         except ImportError as importEx:
             tracer.error("failed to import pyrfc module, unable to initialize NetWeaverRfcClient: ", importEx, exc_info=True)
             raise
