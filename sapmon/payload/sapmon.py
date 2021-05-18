@@ -214,7 +214,7 @@ def monitor(args: str) -> None:
    allChecks = []
 
    # TODO: try removing heartbeat thread completely to see if that mitigates issue with python process not exiting
-   #pool.submit(heartbeat)
+   heartbeatTask = pool.submit(heartbeat)
 
    try:
       while True:
@@ -273,7 +273,10 @@ def monitor(args: str) -> None:
    except Exception as e:
       # signal to threads we need to exit process
       isShuttingDown = True
-      pool.shutdown(wait=True)
+      tracer.info("unhandled exception in main task loop, shutting down thread executor %s", e, exc_info=True)
+      tracer.info("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
+      pool.shutdown(wait=False, cancel_futures=True)
+      tracer.info("thread executor has been shutdown")
       raise
 
 # prepareUpdate will prepare the resources like keyvault, log analytics etc for the version passed as an argument
