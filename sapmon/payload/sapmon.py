@@ -207,7 +207,7 @@ def deleteProvider(args: str) -> None:
 
 # Execute the actual monitoring payload
 def monitor(args: str) -> None:
-   global ctx, tracer, isShuttingDown
+   global ctx, tracer
    tracer.info("starting monitor payload")
 
    pool = ThreadPoolExecutor(NUMBER_OF_THREADS)
