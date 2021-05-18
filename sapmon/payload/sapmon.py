@@ -32,6 +32,9 @@ from helper.providerfactory import *
 from helper.updateprofile import *
 from helper.updatefactory import *
 
+# global flag to signal to any threads they should complete so python process can exit
+isShuttingDown = False 
+
 ###############################################################################
 
 def runCheck(check):
@@ -204,7 +207,7 @@ def deleteProvider(args: str) -> None:
 
 # Execute the actual monitoring payload
 def monitor(args: str) -> None:
-   global ctx, tracer
+   global ctx, tracer, isShuttingDown
    tracer.info("starting monitor payload")
 
    pool = ThreadPoolExecutor(NUMBER_OF_THREADS)
@@ -212,59 +215,64 @@ def monitor(args: str) -> None:
 
    pool.submit(heartbeat)
 
-   while True:
-      now = datetime.now()
-      secondsSinceRefresh = (now-ctx.lastConfigRefreshTime).total_seconds()
-      refresh = False
+   try:
+      while True:
+         now = datetime.now()
+         secondsSinceRefresh = (now-ctx.lastConfigRefreshTime).total_seconds()
+         refresh = False
 
-      # check if config needs refresh
-      # needs refresh if 24 hours as passed or refresh file found
-      if secondsSinceRefresh > CONFIG_REFRESH_IN_SECONDS:
-         tracer.info("Config has not been refreshed in %d seconds, refreshing", secondsSinceRefresh)
-         refresh = True
-      elif os.path.isfile(FILENAME_REFRESH):
-         tracer.info("Refresh file found, refreshing")
-         refresh = True
+         # check if config needs refresh
+         # needs refresh if 24 hours as passed or refresh file found
+         if secondsSinceRefresh > CONFIG_REFRESH_IN_SECONDS:
+            tracer.info("Config has not been refreshed in %d seconds, refreshing", secondsSinceRefresh)
+            refresh = True
+         elif os.path.isfile(FILENAME_REFRESH):
+            tracer.info("Refresh file found, refreshing")
+            refresh = True
 
-      if refresh:
-         allChecks = []
-         ctx.instances = []
+         if refresh:
+            allChecks = []
+            ctx.instances = []
 
-         if not loadConfig():
-            tracer.critical("failed to load config from KeyVault")
-            sys.exit(ERROR_LOADING_CONFIG)
-         logAnalyticsWorkspaceId = ctx.globalParams.get("logAnalyticsWorkspaceId", None)
-         logAnalyticsSharedKey = ctx.globalParams.get("logAnalyticsSharedKey", None)
-         if not logAnalyticsWorkspaceId or not logAnalyticsSharedKey:
-            tracer.critical("global config must contain logAnalyticsWorkspaceId and logAnalyticsSharedKey")
-            sys.exit(ERROR_GETTING_LOG_CREDENTIALS)
-         ctx.azLa = AzureLogAnalytics(tracer,
-                                      logAnalyticsWorkspaceId,
-                                      logAnalyticsSharedKey)
+            if not loadConfig():
+               tracer.critical("failed to load config from KeyVault")
+               sys.exit(ERROR_LOADING_CONFIG)
+            logAnalyticsWorkspaceId = ctx.globalParams.get("logAnalyticsWorkspaceId", None)
+            logAnalyticsSharedKey = ctx.globalParams.get("logAnalyticsSharedKey", None)
+            if not logAnalyticsWorkspaceId or not logAnalyticsSharedKey:
+               tracer.critical("global config must contain logAnalyticsWorkspaceId and logAnalyticsSharedKey")
+               sys.exit(ERROR_GETTING_LOG_CREDENTIALS)
+            ctx.azLa = AzureLogAnalytics(tracer,
+                                          logAnalyticsWorkspaceId,
+                                          logAnalyticsSharedKey)
 
-         for i in ctx.instances:
-            for c in i.checks:
-               allChecks.append(c)
+            for i in ctx.instances:
+               for c in i.checks:
+                  allChecks.append(c)
 
-         ctx.lastConfigRefreshTime = datetime.now()
-         if os.path.exists(FILENAME_REFRESH):
-            os.remove(FILENAME_REFRESH)
+            ctx.lastConfigRefreshTime = datetime.now()
+            if os.path.exists(FILENAME_REFRESH):
+               os.remove(FILENAME_REFRESH)
 
-      for check in allChecks:
-         if check.getLockName() in ctx.checkLockSet:
-            tracer.info("[%s] already queued/executing, skipping" % check.fullName)
-            continue
-         elif not check.isEnabled():
-            tracer.info("[%s] not enabled, skipping" % check.fullName)
-            continue
-         elif not check.isDue():
-            tracer.info("[%s] not due for execution, skipping" % check.fullName)
-            continue
-         else:
-            tracer.info("[%s] getting queued" % check.fullName)
-            ctx.checkLockSet.add(check.getLockName())
-            pool.submit(runCheck, check)
-      sleep(CHECK_WAIT_IN_SECONDS)
+         for check in allChecks:
+            if check.getLockName() in ctx.checkLockSet:
+               tracer.info("[%s] already queued/executing, skipping" % check.fullName)
+               continue
+            elif not check.isEnabled():
+               tracer.info("[%s] not enabled, skipping" % check.fullName)
+               continue
+            elif not check.isDue():
+               tracer.info("[%s] not due for execution, skipping" % check.fullName)
+               continue
+            else:
+               tracer.info("[%s] getting queued" % check.fullName)
+               ctx.checkLockSet.add(check.getLockName())
+               pool.submit(runCheck, check)
+         sleep(CHECK_WAIT_IN_SECONDS)
+   except Exception as e:
+      # signal to threads we need to exit process
+      isShuttingDown = True
+      raise
 
 # prepareUpdate will prepare the resources like keyvault, log analytics etc for the version passed as an argument
 # prepareUpdate needs to be run when a version upgrade requires specific update to the content of the resources
@@ -291,9 +299,9 @@ def ensureDirectoryStructure() -> None:
    return
 
 def heartbeat() -> None: 
-   global ctx      
+   global ctx, isShuttingDown
 
-   while True:
+   while not isShuttingDown:
       providerJson = {
          "Count": 0,
          "Providers": []
