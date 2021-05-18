@@ -273,10 +273,13 @@ def monitor(args: str) -> None:
    except Exception as e:
       # signal to threads we need to exit process
       isShuttingDown = True
-      tracer.info("unhandled exception in main task loop, shutting down thread executor %s", e, exc_info=True)
-      tracer.info("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
+      print("unhandled exception in main task loop, shutting down thread executor %s" % e)
+      print("heartbeat task:%s, isRunning:%s, exception:%s" % (heartbeatTask, heartbeatTask.running, heartbeatTask.exception))
+      tracer.critical("unhandled exception in main task loop, shutting down thread executor %s", e, exc_info=True)
+      tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
       pool.shutdown(wait=False, cancel_futures=True)
-      tracer.info("thread executor has been shutdown")
+      print("thread executor has been shutdown")
+      tracer.critical("thread executor has been shutdown")
       raise
 
 # prepareUpdate will prepare the resources like keyvault, log analytics etc for the version passed as an argument
