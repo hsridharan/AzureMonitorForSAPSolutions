@@ -236,9 +236,15 @@ def monitor(args: str) -> None:
             ctx.instances = []
 
             if not loadConfig():
-               tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
                tracer.critical("failed to load config from KeyVault")
+               
+               isShuttingDown = True
+               tracer.critical("unhandled exception in main task loop, shutting down thread executor %s", e, exc_info=True)
                tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
+               pool.shutdown(wait=True)
+               tracer.critical("thread executor has been shutdown")
+               tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
+               
                sys.exit(ERROR_LOADING_CONFIG)
             logAnalyticsWorkspaceId = ctx.globalParams.get("logAnalyticsWorkspaceId", None)
             logAnalyticsSharedKey = ctx.globalParams.get("logAnalyticsSharedKey", None)
@@ -275,12 +281,9 @@ def monitor(args: str) -> None:
    except Exception as e:
       # signal to threads we need to exit process
       isShuttingDown = True
-      print("unhandled exception in main task loop, shutting down thread executor %s" % e)
-      print("heartbeat task:%s, isRunning:%s, exception:%s" % (heartbeatTask, heartbeatTask.running, heartbeatTask.exception))
       tracer.critical("unhandled exception in main task loop, shutting down thread executor %s", e, exc_info=True)
       tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
-      pool.shutdown(wait=False, cancel_futures=True)
-      print("thread executor has been shutdown")
+      pool.shutdown(wait=True)
       tracer.critical("thread executor has been shutdown")
       raise
 
