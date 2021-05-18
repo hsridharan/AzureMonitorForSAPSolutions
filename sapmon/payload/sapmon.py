@@ -272,6 +272,7 @@ def monitor(args: str) -> None:
    except Exception as e:
       # signal to threads we need to exit process
       isShuttingDown = True
+      pool.shutdown(wait=True)
       raise
 
 # prepareUpdate will prepare the resources like keyvault, log analytics etc for the version passed as an argument
