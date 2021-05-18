@@ -236,7 +236,9 @@ def monitor(args: str) -> None:
             ctx.instances = []
 
             if not loadConfig():
+               tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
                tracer.critical("failed to load config from KeyVault")
+               tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
                sys.exit(ERROR_LOADING_CONFIG)
             logAnalyticsWorkspaceId = ctx.globalParams.get("logAnalyticsWorkspaceId", None)
             logAnalyticsSharedKey = ctx.globalParams.get("logAnalyticsSharedKey", None)
