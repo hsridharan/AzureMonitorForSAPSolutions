@@ -239,7 +239,6 @@ def monitor(args: str) -> None:
                tracer.critical("failed to load config from KeyVault")
                
                isShuttingDown = True
-               tracer.critical("unhandled exception in main task loop, shutting down thread executor %s", e, exc_info=True)
                tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
                pool.shutdown(wait=True)
                tracer.critical("thread executor has been shutdown")
