@@ -213,7 +213,8 @@ def monitor(args: str) -> None:
    pool = ThreadPoolExecutor(NUMBER_OF_THREADS)
    allChecks = []
 
-   pool.submit(heartbeat)
+   # TODO: try removing heartbeat thread completely to see if that mitigates issue with python process not exiting
+   #pool.submit(heartbeat)
 
    try:
       while True:
