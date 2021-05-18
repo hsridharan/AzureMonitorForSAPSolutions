@@ -213,8 +213,7 @@ def monitor(args: str) -> None:
    pool = ThreadPoolExecutor(NUMBER_OF_THREADS)
    allChecks = []
 
-   # TODO: try removing heartbeat thread completely to see if that mitigates issue with python process not exiting
-   heartbeatTask = pool.submit(heartbeat)
+   pool.submit(heartbeat)
 
    while True:
       now = datetime.now()
@@ -243,8 +242,8 @@ def monitor(args: str) -> None:
             tracer.critical("global config must contain logAnalyticsWorkspaceId and logAnalyticsSharedKey")
             shutdownMonitor(ERROR_GETTING_LOG_CREDENTIALS)
          ctx.azLa = AzureLogAnalytics(tracer,
-                                       logAnalyticsWorkspaceId,
-                                       logAnalyticsSharedKey)
+                                      logAnalyticsWorkspaceId,
+                                      logAnalyticsSharedKey)
 
          for i in ctx.instances:
             for c in i.checks:
@@ -297,12 +296,9 @@ def ensureDirectoryStructure() -> None:
 
 def shutdownMonitor(status: object) -> None:
    global isShuttingDown
-
    # signal to threads we need to exit process
    isShuttingDown = True
    tracer.critical("signaling tasks to shutdown")
-   #pool.shutdown(wait=True)
-   #tracer.critical("thread executor has been shutdown")
    sys.exit(status)
 
 def heartbeat() -> None: 
