@@ -236,12 +236,12 @@ def monitor(args: str) -> None:
 
          if not loadConfig():
             tracer.critical("failed to load config from KeyVault")
-            shutdownMonitor(ERROR_LOADING_CONFIG, pool, heartbeatTask)
+            shutdownMonitor(ERROR_LOADING_CONFIG)
          logAnalyticsWorkspaceId = ctx.globalParams.get("logAnalyticsWorkspaceId", None)
          logAnalyticsSharedKey = ctx.globalParams.get("logAnalyticsSharedKey", None)
          if not logAnalyticsWorkspaceId or not logAnalyticsSharedKey:
             tracer.critical("global config must contain logAnalyticsWorkspaceId and logAnalyticsSharedKey")
-            shutdownMonitor(ERROR_GETTING_LOG_CREDENTIALS, pool, heartbeatTask)
+            shutdownMonitor(ERROR_GETTING_LOG_CREDENTIALS)
          ctx.azLa = AzureLogAnalytics(tracer,
                                        logAnalyticsWorkspaceId,
                                        logAnalyticsSharedKey)
@@ -295,15 +295,14 @@ def ensureDirectoryStructure() -> None:
          sys.exit(ERROR_FILE_PERMISSION_DENIED)
    return
 
-def shutdownMonitor(status: object, pool: ThreadPoolExecutor, heartbeatTask: object) -> None:
+def shutdownMonitor(status: object) -> None:
    global isShuttingDown
 
    # signal to threads we need to exit process
    isShuttingDown = True
-   tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
-   pool.shutdown(wait=True)
-   tracer.critical("thread executor has been shutdown")
-   tracer.critical("heartbeat task:%s, isRunning:%s, exception:%s", heartbeatTask, heartbeatTask.running, heartbeatTask.exception, exc_info=True)
+   tracer.critical("signaling tasks to shutdown")
+   #pool.shutdown(wait=True)
+   #tracer.critical("thread executor has been shutdown")
    sys.exit(status)
 
 def heartbeat() -> None: 
