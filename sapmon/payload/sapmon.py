@@ -40,17 +40,28 @@ isShuttingDown = False
 def runCheck(check):
    global ctx, tracer
 
+   wasSuccessful = True
    try:
       # Run all actions that are part of this check
-      resultJson = check.run()
+      try:
+         resultJson = check.run()
+      except Exception as e:
+         # unhandled exception from check.run() means the action was not successful
+         # and the resultJson string will either be uninitialized or will 
+         tracer.error("[%s] failed check due to exception: %s", check.fullName, e, exc_info=True)
+         wasSuccessful = False
+
+      # Persist updated internal state to provider state file, regardless of whether check succeeded or failed
+      check.providerInstance.writeState()
+
+      if not wasSuccessful:
+         # if check action failed, then we can return early since there will be no valid resultJson to emit to Log Analytics
+         return
 
       # Ingest result into Log Analytics
       ctx.azLa.ingest(check.customLog,
                         resultJson,
                         check.colTimeGenerated)
-
-      # Persist updated internal state to provider state file
-      check.providerInstance.writeState()
 
       # Ingest result into Customer Analytics
       enableCustomerAnalytics = ctx.globalParams.get("enableCustomerAnalytics", True)
@@ -60,6 +71,9 @@ def runCheck(check):
                                           check.customLog,
                                           resultJson)
       tracer.info("finished check %s" % (check.fullName))
+   except Exception as e:
+      tracer.error("[%s] unhandled exception in runCheck: %s", check.fullName, e, exc_info=True)
+      raise
    finally:
       ctx.checkLockSet.remove(check.getLockName())
 
@@ -254,19 +268,23 @@ def monitor(args: str) -> None:
             os.remove(FILENAME_REFRESH)
 
       for check in allChecks:
-         if check.getLockName() in ctx.checkLockSet:
-            tracer.info("[%s] already queued/executing, skipping" % check.fullName)
-            continue
-         elif not check.isEnabled():
-            tracer.info("[%s] not enabled, skipping" % check.fullName)
-            continue
-         elif not check.isDue():
-            tracer.info("[%s] not due for execution, skipping" % check.fullName)
-            continue
-         else:
-            tracer.info("[%s] getting queued" % check.fullName)
-            ctx.checkLockSet.add(check.getLockName())
-            pool.submit(runCheck, check)
+         try:
+            if check.getLockName() in ctx.checkLockSet:
+               tracer.info("[%s] already queued/executing, skipping" % check.fullName)
+               continue
+            elif not check.isEnabled():
+               tracer.info("[%s] not enabled, skipping" % check.fullName)
+               continue
+            elif not check.isDue():
+               tracer.info("[%s] not due for execution, skipping" % check.fullName)
+               continue
+            else:
+               tracer.info("[%s] getting queued" % check.fullName)
+               ctx.checkLockSet.add(check.getLockName())
+               pool.submit(runCheck, check)
+         except Exception as e:
+            tracer.error("[%s] exception determining execution state of check, %s", check.fullName, e, exc_info=True)
+
       sleep(CHECK_WAIT_IN_SECONDS)
 
 
