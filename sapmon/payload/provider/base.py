@@ -249,6 +249,12 @@ class ProviderCheck(ABC):
    # Returns a JSON-formatted string that can be ingested into Log Analytics
    def run(self) -> str:      
       startTime = time()
+      
+      # ensure lastRunTime is initialized at start of run method, rather than require all action methods to initialize it themselves
+      # (although individual action methods can overwrite with a successful run timestamp upon completion if they want)
+      # NOTE:  this ensures we do not spam logs every 5 seconds trying to rerun checks that throw unhandled exception
+      self.state['lastRunLocal'] = datetime.utcnow()
+
       try:
          self.duration = 0
          self.success = False
@@ -273,7 +279,8 @@ class ProviderCheck(ABC):
                                                                                                                methodName,
                                                                                                                e))
                self.checkMessage = str(e)
-               break
+               # reraise exception since we have no valid JSON result string to return
+               raise
       finally:
          self.duration = TimeUtils.getElapsedMilliseconds(startTime)      
 
