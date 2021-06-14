@@ -101,6 +101,7 @@
             "name": "SqlProbe",
             "description": "Probe for SAP HANA SQL connection",
             "customLog": "SapHana_SqlProbe",
+            "enabled": false,
             "frequencySecs": 60,
             "includeInCustomerAnalytics": true,
             "actions": [
